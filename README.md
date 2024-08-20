@@ -6,6 +6,8 @@ This app is a simple weather forecast app that uses the [OpenWeatherMap API](htt
 
 - [Installation and Setup](#installation-and-setup)
 - [Packages Used](#packages-used)
+- [Main Features](#main-features)
+- [Screenshots](#screenshots)
 
 ## Installation and Setup
 You don't need to have api key to run this app, the api key is already included in the app. To run this app, follow these steps: 
@@ -46,3 +48,11 @@ You don't need to have api key to run this app, the api key is already included 
 - Display 5 days weather forecast
 - Select city to get weather forecast
 - Pull to refresh
+
+## Screenshots
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/14bbb56c-1ed8-4c29-b560-4cffe28ebeef" width=200 style="padding: 5px">
+  <img src="https://github.com/user-attachments/assets/e852cef9-e394-4031-95e3-9ecbf3986d65" width=200 style="padding: 5px">
+  <img src="https://github.com/user-attachments/assets/fb88b061-ae61-41fa-a5f8-f952731a67c5" width=200 style="padding: 5px">
+</p>
