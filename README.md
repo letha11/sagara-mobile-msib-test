@@ -1,5 +1,7 @@
 # Weather Forecast Application
 
+This project was developed for internship test at Sagara Technology.
+
 This app is a simple weather forecast app that uses the [OpenWeatherMap API](https://openweathermap.org/) to get the weather forecast data. The app has 1 screens and 1 modal bottom sheet, the first screen is the home screen that displays the current weather and the next 5 days weather forecast. The modal bottom sheet is used to display list of city and user can select the city to get the weather forecast of that city.
 
 ## Table of Contents
