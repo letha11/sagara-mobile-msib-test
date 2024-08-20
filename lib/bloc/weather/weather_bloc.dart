@@ -46,7 +46,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
 
     late Either<Failure, CurrentDayForecast> currentWeather;
     late Either<Failure, MultipleDaysForecast> forecastWeather;
-    if (position != null) {
+    if (position != null && event.city == null) {
       currentWeather = await _weatherRepository.getCurrentWeather(
         lat: position!.latitude,
         lon: position!.longitude,
