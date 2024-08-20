@@ -1,33 +1,48 @@
-# sagara-mobile-msib-test
+# Weather Forecast Application
 
-Tujuan:
-Mengembangkan aplikasi mobile dasar menggunakan React Native atau Flutter untuk menunjukkan keterampilan dasar Anda dalam pengembangan aplikasi mobile, terutama dalam integrasi API dan desain antarmuka pengguna.
+This app is a simple weather forecast app that uses the [OpenWeatherMap API](https://openweathermap.org/) to get the weather forecast data. The app has 1 screens and 1 modal bottom sheet, the first screen is the home screen that displays the current weather and the next 5 days weather forecast. The modal bottom sheet is used to display list of city and user can select the city to get the weather forecast of that city.
 
-Konsep Aplikasi:
-Membuat aplikasi "Weather Forecast" (Prakiraan Cuaca).
+## Table of Contents
 
-Fitur Utama:
-1. Tampilan Cuaca:
-- Menampilkan kondisi cuaca saat ini.
-- Menampilkan prakiraan cuaca untuk 3 hari ke depan.
+- [Installation and Setup](#installation-and-setup)
+- [Packages Used](#packages-used)
 
-2. Integrasi API:
-- Menggunakan API cuaca publik (OpenWeatherMap https://openweathermap.org/api) untuk mengambil dan menampilkan data cuaca.
+## Installation and Setup
+You don't need to have api key to run this app, the api key is already included in the app. To run this app, follow these steps: 
 
-Persyaratan:
-a. Integrasi API: Mengintegrasikan API yang dipilih untuk mengambil dan menampilkan data cuaca saat ini serta prakiraan cuaca.
-b. Penanganan Error: Mengimplementasikan penanganan error dasar untuk mengelola masalah seperti kegagalan permintaan API atau kurangnya koneksi internet.
-c. Kualitas Kode: Penerapan SOLID Programming
-d. Desain UI/UX: Sederhana, intuitif, dan menarik secara visual.
+1. Clone Repository :
 
-Dokumentasi:
-a. Menyertakan file README dengan instruksi tentang cara mengatur dan menjalankan aplikasi.
-b. Kirimkan kode sumber lengkap melalui link repository GitHub.
-c. Pastikan aplikasi mudah diatur dan dijalankan, dengan instruksi pengaturan yang jelas dalam file README.
+   ```bash
+   git clone https://github.com/letha11/sagara-mobile-msib-test.git
+   ```
+2. Navigate to the project directory:
 
-Kriteria Penilaian:
-1. Organisasi & Kejelasan Kode, struktur dan organisasi kode
-2. Error handling
-3. UI/UX yang sederhana dan efektif.
+   ```bash
+   cd sagara-mobile-msib-test
+   ```
 
-Deliverables silakan fork repository ini dan submit link repository hasil pengerjaan Anda ke [xxx](https://bit.ly/study-case-mobile-developer-msib).
+3. Install dependencies:
+
+   ```bash
+   flutter pub get
+   ```
+
+4. Run the app:
+
+   ```bash
+   flutter run
+   ```
+
+## Packages Used
+
+- BLoC
+- Dio
+- fpdart
+- get_it
+
+## Main Features
+
+- Display current weather based on user location or selected city
+- Display 5 days weather forecast
+- Select city to get weather forecast
+- Pull to refresh

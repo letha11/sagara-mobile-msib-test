@@ -1,236 +1,323 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:weather_app/bloc/weather/weather_bloc.dart';
+import 'package:weather_app/core/date_formatter.dart';
+import 'package:weather_app/core/extensions.dart';
 import 'package:weather_app/utils/colors.dart';
+import 'package:weather_app/utils/loading_indicator.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _cityPicked;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<WeatherBloc>().add(GetWeather(city: _cityPicked));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tangerang',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Text(
-              '20 Agustus, Selasa',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w400),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: InkWell(
-                onTap: () {
-                  // show modal bottomsheet
-                  showLocationBottomSheet(context);
-                },
-                child: const Placeholder(
-                  fallbackWidth: 24,
-                  fallbackHeight: 24,
-                  color: Colors.white,
-                ),
+      body: BlocBuilder<WeatherBloc, WeatherState>(
+        builder: (context, state) {
+          if (state is WeatherLoading || state is WeatherInitial) {
+            return const LoadingIndicator();
+          } else if (state is WeatherError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    state.errorMessage,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<WeatherBloc>()
+                          .add(GetWeather(city: _cityPicked));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                    ),
+                    child: Text(
+                      'Retry',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  )
+                ],
               ),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          primary: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 55),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+            );
+          } else if (state is WeatherLoaded) {
+            return RefreshIndicator(
+              color: AppColors.textPrimary,
+              backgroundColor: AppColors.secondary,
+              onRefresh: () async {
+                context.read<WeatherBloc>().add(GetWeather(city: _cityPicked));
+              },
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    primary: true,
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Clouds',
-                          style: Theme.of(context).textTheme.titleLarge,
+                        const SizedBox(height: 160),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    state.currentDayForecast.weather[0].main!,
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  Text(
+                                    state.currentDayForecast.weather[0]
+                                        .description!,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                              Image.asset(
+                                state.currentDayForecast.weather[0].main!
+                                    .toIconPath,
+                                width: MediaQuery.of(context).size.width * 0.35,
+                              ),
+                            ],
+                          ),
                         ),
-                        Text(
-                          'Few Clouds',
-                          style: Theme.of(context).textTheme.bodySmall,
+                        const SizedBox(height: 72),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 22, vertical: 20),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildWeatherInfo(
+                                    context,
+                                    '${state.currentDayForecast.main!.temp}°C',
+                                    'Temp',
+                                    Icons.thermostat),
+                                Container(
+                                  width: 2,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                _buildWeatherInfo(
+                                    context,
+                                    '${state.currentDayForecast.main!.humidity}%',
+                                    'Humidity',
+                                    Icons.water_drop),
+                                Container(
+                                  width: 2,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                _buildWeatherInfo(
+                                    context,
+                                    '${state.currentDayForecast.wind!.speed} m/s',
+                                    'Wind',
+                                    Icons.air),
+                              ],
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: 34),
+                        ListView.builder(
+                            primary: false,
+                            shrinkWrap: true,
+                            itemCount:
+                                state.multipleDaysForecast.groupedByDate.length,
+                            itemBuilder: (context, i) {
+                              final day = state
+                                  .multipleDaysForecast.groupedByDate.keys
+                                  .elementAt(i);
+                              final date = state.multipleDaysForecast
+                                  .groupedByDate[day]?[0].dtTxt!;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 21),
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            _formatDay(day),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall,
+                                          ),
+                                          Text(
+                                            DateFormatter.format(
+                                                date ?? DateTime.now()),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                    color: AppColors
+                                                        .textSecondary),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      height: 150,
+                                      child: ListView.builder(
+                                        primary: false,
+                                        scrollDirection: Axis.horizontal,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20),
+                                        itemCount: state.multipleDaysForecast
+                                            .groupedByDate[day]!.length,
+                                        itemBuilder: (context, i) {
+                                          final item = state
+                                              .multipleDaysForecast
+                                              .groupedByDate[day]![i];
+                                          EdgeInsets padding =
+                                              const EdgeInsets.only(right: 10);
+
+                                          if (i ==
+                                              state
+                                                      .multipleDaysForecast
+                                                      .groupedByDate[day]!
+                                                      .length -
+                                                  1) {
+                                            padding = EdgeInsets.zero;
+                                          }
+
+                                          return Padding(
+                                            padding: padding,
+                                            child: _buildForecastItem(
+                                                context,
+                                                DateFormatter.getHourAmFormat(
+                                                    item.dtTxt ??
+                                                        DateTime.now()),
+                                                DateFormatter.getAmPm(
+                                                    item.dtTxt ??
+                                                        DateTime.now()),
+                                                '${item.main!.temp!.round()}°C',
+                                                item.weather[0].main!),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                        const SizedBox(height: 120),
                       ],
                     ),
-                    const Placeholder(
-                      fallbackWidth: 50,
-                      fallbackHeight: 50,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 72),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildWeatherInfo(context, '10°C', 'Temp', Icons.thermostat),
-                      Container(
-                        width: 2,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      _buildWeatherInfo(context, '75%', 'Humidity', Icons.water_drop),
-                      Container(
-                        width: 2,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      _buildWeatherInfo(context, '2 m/s', 'Wind', Icons.air),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 34),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Expanded(
+                  // Bar
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 10),
+                      color: AppColors.primary,
                       child: Row(
-                        // crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Hari Ini',
-                            style: Theme.of(context).textTheme.titleSmall,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                state.currentDayForecast.name!,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                DateFormatter.format(DateTime.now()),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(fontWeight: FontWeight.w400),
+                              ),
+                            ],
                           ),
-                          Text(
-                            '20 Agustus, 2024',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                          InkWell(
+                            onTap: () {
+                              showLocationBottomSheet(context);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: AppColors.secondary,
+                              ),
+                              child: Icon(
+                                Icons.settings,
+                                size: 24,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 150,
-                child: ListView.builder(
-                  primary: false,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 10,
-                  itemBuilder: (context, i) {
-                    late EdgeInsets padding = const EdgeInsets.only(right: 10);
-
-                    if (i == 10 - 1) {
-                      padding = EdgeInsets.zero;
-                    }
-
-                    return Padding(
-                      padding: padding,
-                      child: _buildForecastItem(context, '6', 'PM', '10°C'),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 21),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Besok',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    Text(
-                      '20 Agustus, 2024',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 150,
-                child: ListView.builder(
-                  primary: false,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 10,
-                  itemBuilder: (context, i) {
-                    late EdgeInsets padding = const EdgeInsets.only(right: 10);
-
-                    if (i == 10 - 1) {
-                      padding = EdgeInsets.zero;
-                    }
-
-                    return Padding(
-                      padding: padding,
-                      child: _buildForecastItem(context, '6', 'PM', '10°C'),
-                    );
-                  },
-                ),
-              ),
-              // Add more sections as needed
-            ],
-          ),
-        ),
+            );
+          } else {
+            return const SizedBox();
+          }
+        },
       ),
     );
   }
 
-  Widget _buildWeatherInfo(BuildContext context, String value, String label, IconData icon) {
+  Widget _buildWeatherInfo(
+      BuildContext context, String value, String label, IconData icon) {
     return Column(
       children: [
         Icon(icon, color: Colors.white, size: 34),
         const SizedBox(height: 2),
         Text(
           value,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(fontWeight: FontWeight.w400, color: AppColors.textPrimary),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w400, color: AppColors.textPrimary),
         ),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
 
-  Widget _buildForecastItem(BuildContext context, String time, String meridiem, String temp) {
+  Widget _buildForecastItem(BuildContext context, String time, String meridiem,
+      String temp, String weather) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
       decoration: BoxDecoration(
@@ -241,68 +328,83 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           RichText(
-            text: TextSpan(text: time, style: Theme.of(context).textTheme.bodyMedium, children: [
-              TextSpan(text: ' $meridiem', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 11))
-            ]),
+            text: TextSpan(
+                text: time,
+                style: Theme.of(context).textTheme.bodyMedium,
+                children: [
+                  TextSpan(
+                      text: ' $meridiem',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontSize: 11))
+                ]),
           ),
           const SizedBox(height: 5),
-          const Placeholder(
-            fallbackWidth: 30,
-            fallbackHeight: 30,
-            color: Colors.white,
+          Image.asset(
+            weather.toIconPath,
+            width: 30,
           ),
           const SizedBox(height: 5),
           Text(
             temp,
-            style: const TextStyle(
-              fontFamily: 'Lexend',
-              color: Colors.white,
-              fontSize: 16,
-            ),
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
     );
   }
 
+  String _formatDay(String day) {
+    final now = DateTime.now();
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+
+    if (day == DateFormatter.getDay(now)) {
+      return 'Today';
+    } else if (day == DateFormatter.getDay(tomorrow)) {
+      return 'Tomorrow';
+    } else {
+      return day;
+    }
+  }
+
   void showLocationBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
       ),
-      backgroundColor: Colors.grey[900],
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: AppColors.secondary,
+      isScrollControlled: true,
+      builder: (BuildContext modalContext) {
+        return FractionallySizedBox(
+          heightFactor: 0.8,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
-                  hintText: 'Tangerang',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide.none,
-                  ),
+              Container(
+                width: 59,
+                height: 7,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary,
                 ),
               ),
-              const SizedBox(height: 16),
               Expanded(
                 child: ListView(
                   children: [
                     'Tangerang',
                     'Jakarta',
                     'Padang',
-                    'Tangerang',
-                    'Jakarta',
-                    'Padang',
-                    'Tangerang',
-                    'Jakarta',
-                    'Padang',
+                    'Bandung',
+                    'Surabaya',
+                    'Bali',
+                    'Makassar',
+                    'Manado',
+                    'Medan',
+                    'Semarang',
+                    'Yogyakarta',
                   ]
                       .map((city) => ListTile(
                             title: Text(
@@ -313,7 +415,10 @@ class HomePage extends StatelessWidget {
                               ),
                             ),
                             onTap: () {
-                              // Handle city selection
+                              _cityPicked = city;
+                              context
+                                  .read<WeatherBloc>()
+                                  .add(GetWeather(city: city));
                               Navigator.pop(context);
                             },
                           ))

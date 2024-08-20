@@ -7,9 +7,9 @@ class Wind extends Equatable {
     required this.gust,
   });
 
-  final double? speed;
+  final num? speed;
   final int? deg;
-  final double? gust;
+  final num? gust;
 
   factory Wind.fromJson(Map<String, dynamic> json) {
     return Wind(

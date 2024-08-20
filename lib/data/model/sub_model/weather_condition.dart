@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 
 class WeatherConditions extends Equatable {
@@ -14,15 +13,15 @@ class WeatherConditions extends Equatable {
     required this.tempKf,
   });
 
-  final double? temp;
-  final double? feelsLike;
-  final double? tempMin;
-  final double? tempMax;
+  final num? temp;
+  final num? feelsLike;
+  final num? tempMin;
+  final num? tempMax;
   final int? pressure;
   final int? seaLevel;
   final int? grndLevel;
   final int? humidity;
-  final double? tempKf;
+  final num? tempKf;
 
   factory WeatherConditions.fromJson(Map<String, dynamic> json) {
     return WeatherConditions(
@@ -68,4 +67,3 @@ class WeatherConditions extends Equatable {
         tempKf,
       ];
 }
-
