@@ -4,7 +4,7 @@ import 'package:weather_app/core/dio_client.dart';
 import 'package:weather_app/core/failures.dart';
 import 'package:weather_app/data/model/current_day_forecast.dart';
 import 'package:weather_app/data/model/multiple_days_forecast.dart';
-import 'package:weather_app/util/constants.dart';
+import 'package:weather_app/utils/constants.dart';
 
 abstract class WeatherRepository {
   Future<Either<Failure, CurrentDayForecast>> getCurrentWeather(String city);

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:weather_app/util/constants.dart';
+import 'package:weather_app/utils/constants.dart';
 
 class DioClient {
   late final Dio _dio;
@@ -22,7 +22,6 @@ class DioClient {
         options.headers['Content-Type'] = 'application/json';
         return handler.next(options);
       });
-
 
   Dio get dio => _dio;
 }
